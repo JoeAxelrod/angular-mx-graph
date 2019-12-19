@@ -81,7 +81,7 @@ export default class MxgraphShapes {
       service.mxShape.call(this);
     }
 
-    service.mxUtils.extend(HtmlShape, service.mxShape);
+    // service.mxUtils.extend(HtmlShape, service.mxShape);
 
     HtmlShape.prototype.dialect = service.mxConstants.DIALECT_PREFERHTML;
 
@@ -179,7 +179,7 @@ export default class MxgraphShapes {
     }
 
     // Use mxUtils.extend
-    service.mxUtils.extend(OtdrSelected, service.mxArrow);
+    // service.mxUtils.extend(OtdrSelected, service.mxArrow);
     OtdrSelected.prototype.paintEdgeShape = function (context, points) {
       for (let i = 0; i + 1 < points.length; i++) {
         const currentPoints = [points[i], points[i + 1]];
@@ -195,7 +195,7 @@ export default class MxgraphShapes {
     }
 
     // Use mxUtils.extend
-    service.mxUtils.extend(HighlightSelected, service.mxArrow);
+    // service.mxUtils.extend(HighlightSelected, service.mxArrow);
     HighlightSelected.prototype.paintEdgeShape = function (context, points) {
       for (let i = 0; i + 1 < points.length; i++) {
         const currentPoints = [points[i], points[i + 1]];
@@ -210,31 +210,5 @@ export default class MxgraphShapes {
     service.mxCellRenderer.registerShape('highlightSelected', HighlightSelected);
     service.mxCellRenderer.registerShape('otdrSelected', OtdrSelected);
 
-    const obj: any = {};
-    // create phase styles
-    service.phaseIndicatorService.getPhaseColors().forEach((color: string, index) => {
-      const colorName = color.replace('#', '');
-      const keyRegular = `regularWithPhase_${colorName}`;
-      const keyRegularSelected = `regularWithPhaseSelected_${colorName}`;
-      const keyOtdr = `otdrWithPhase_${colorName}`;
-      const keyOtdrSelected = `otdrWithPhaseSelected_${colorName}`;
-
-      [keyRegular, keyRegularSelected, keyOtdr, keyOtdrSelected].forEach(key => {
-        obj[key] = function () {
-          service.mxArrow.call(this);
-        };
-        service.mxUtils.extend(obj[key], service.mxArrow);
-        obj[key].prototype.paintEdgeShape = function (c, pts) {
-          const d = getData(pts);
-
-          key === keyOtdrSelected && line(c, d, -1, '#7ce7fe');
-          line(c, d, 0, key === keyRegularSelected ? '#7ce7fe' : (key === keyRegular ? '#E4F1F9' : '#006FFF'));
-          line(c, d, 1, color);
-          key === keyOtdrSelected && line(c, d, 2, '#7ce7fe');
-        };
-        // Registers the link shape
-        service.mxCellRenderer.registerShape(key, obj[key]);
-      });
-    });
   }
 }

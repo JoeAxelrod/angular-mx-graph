@@ -1,14 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
 
-import { throttleTime } from 'rxjs/operators';
 import { Subject, Subscription } from 'rxjs';
 import { get } from 'lodash';
 
-import { KeyboardListenerService } from '../../providers/keyboard-listener/keyboard-listener.service';
-import { AbstractEntity } from '../../models/entity';
-import { PhaseIndicatorService } from '../../phases/providers/phase-indicator.service';
-import { CommonService } from '../../providers/common/common.service';
 import MxGraphAddons from './mx-graph-addons';
 import MxgraphShapes from './mx-graph-shapes';
 import MxgraphOverrides from './mx-graph-overrides';
@@ -97,7 +91,7 @@ export class MxGraphService {
   count: number;
 
   // entities store (currently cables only and sites partially)
-  entities: { [key: number]: AbstractEntity } = {};
+  entities = {};
   selectedColor = '#7ce7fe';
   customSelectionStyle = {
     strokeColor: this.selectedColor,
@@ -105,11 +99,7 @@ export class MxGraphService {
   };
 
 
-  constructor(private router: Router,
-              private keyboardListener: KeyboardListenerService,
-              private commonService: CommonService /* TODO: can remove this? */,
-              private phaseIndicatorService: PhaseIndicatorService /* Do not remove: necessary for external "this" use */)
-  {
+  constructor() {
     MxgraphShapes.addMultilineShapes(this);
     MxgraphOverrides.popupMenuAddItem(this);
     MxgraphOverrides.popupMenu(this);
@@ -123,25 +113,6 @@ export class MxGraphService {
     MxGraphAddons.distibuteCells(this);
     MxGraphAddons.addCustomEdgeStyle(this);
     MxgraphOverrides.createSelectionShape(this);
-
-    this.subscriptions.add(
-      this.mouseMoveEventOrigin$.pipe(
-        throttleTime(150)
-      ).subscribe(data => this.mouseMoveEvent$.next(data))
-    );
-
-    // zoom in / out on shift plus / minus / underscore
-    this.subscriptions.add(
-      this.keyboardListener.keyboardEvent$.subscribe((e: any) => {
-        if (['SHIFT_PLUS', 'SHIFT_MINUS'].includes(e.key)) {
-          const key = this.router.url.split('?')[0];
-          if (this.graphs[key] && e.event.target.nodeName !== 'INPUT' && !e.event.target.hasAttribute('contenteditable')) {
-            const funcName = e.key === 'SHIFT_PLUS' ? 'zoomIn' : 'zoomOut';
-            this.graphs[key].graph[funcName]();
-          }
-        }
-      })
-    );
   }
 
   // https://jgraph.github.io/mxgraph/docs/js-api/files/util/mxConstants-js.html#mxConstants
@@ -247,7 +218,7 @@ export class MxGraphService {
     });
 
     this.graphReference = graph;
-    key = key || this.router.url.split('?')[0];
+    key = key || 'test_123';
     const zoomTouched = get(this, `graphs[${key}].graph.zoomTouched`);
     this.graphs[key] = {graph, selectedMap: {}, savedScale: get(this, `graphs[${key}].savedScale`)};
     if (zoomTouched) {
@@ -256,10 +227,6 @@ export class MxGraphService {
   }
 
   getGraph(byUrl = false) {
-    if (byUrl) {
-      const key = this.router.url.split('?')[0];
-      return get(this, `graphs[${key}].graph`, this.graphReference);
-    }
     return this.graphReference;
   }
 
@@ -784,16 +751,6 @@ export class MxGraphService {
   }
 
   updateGraphScale(graph: any) {
-    const key = this.router.url.split('?')[0];
-    if (this.graphs[key]) {
-      if (this.graphs[key].graph.view.scale !== 1) {
-        graph.view.setScale(this.graphs[key].graph.view.scale);
-        this.graphs[key].graphTouched = true;
-      }
-      if (this.graphs[key].graph.view.translate.x || this.graphs[key].graph.view.translate.y) {
-        graph.view.setTranslate(this.graphs[key].graph.view.translate.x, this.graphs[key].graph.view.translate.y);
-        this.graphs[key].graphTouched = true;
-      }
-    }
+  
   }
 }
